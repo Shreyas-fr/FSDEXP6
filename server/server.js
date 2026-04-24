@@ -15,12 +15,13 @@ mongoose.connect('mongodb://127.0.0.1:27017/expenseTracker')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// GET /expenses
-app.get('/expenses', async (req, res) => {
+// GET /api/expenses - Retrieve records & External API Rates
+app.get('/api/expenses', async (req, res) => {
   try {
     const expenses = await Expense.find().sort({ date: -1 });
     
-    // External API Integration for exchange rates
+    // External API Integration for exchange rates 
+    // Handled defensively so failing to retrieve rates doesn't crash your expenses request
     let exchangeRates = null;
     try {
       const response = await axios.get('https://api.frankfurter.app/latest?from=USD');
@@ -38,8 +39,8 @@ app.get('/expenses', async (req, res) => {
   }
 });
 
-// POST /expenses
-app.post('/expenses', async (req, res) => {
+// POST /api/expenses - Save new record
+app.post('/api/expenses', async (req, res) => {
   try {
     const { amount, category, date } = req.body;
     const newExpense = new Expense({ amount, category, date });
@@ -50,8 +51,8 @@ app.post('/expenses', async (req, res) => {
   }
 });
 
-// DELETE /expenses/:id
-app.delete('/expenses/:id', async (req, res) => {
+// DELETE /api/expenses/:id - Purge Record
+app.delete('/api/expenses/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Expense.findByIdAndDelete(id);
@@ -63,6 +64,11 @@ app.delete('/expenses/:id', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
+
+// Export for Vercel Serverless
+module.exports = app;

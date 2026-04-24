@@ -13,7 +13,7 @@ function App() {
 
   const fetchExpenses = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/expenses');
+      const res = await axios.get('/api/expenses');
       setExpenses(res.data.expenses);
       setRates(res.data.marketRates);
     } catch (err) {
@@ -33,7 +33,7 @@ function App() {
     e.preventDefault();
     if (!formData.amount || !formData.date) return;
     try {
-      await axios.post('http://localhost:5000/expenses', formData);
+      await axios.post('/api/expenses', formData);
       fetchExpenses(); // Refresh the list
       setFormData({ amount: '', category: 'Food', date: '' });
     } catch (err) {
@@ -43,7 +43,7 @@ function App() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/expenses/${id}`);
+      await axios.delete(`/api/expenses/${id}`);
       fetchExpenses();
     } catch (err) {
       console.error('Error deleting expense:', err);
